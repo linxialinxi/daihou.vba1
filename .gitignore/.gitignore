@@ -1,0 +1,199 @@
+Sub 贷后一号VBA()
+'
+' 贷后一号VBA 宏
+'
+
+'
+    Dim rng1 As Range, rng2 As Range, rng3 As Range, myMultiAreaRange As Range
+    '查询一共有多少行/列
+    hs = Worksheets(1).UsedRange.Rows.Count
+    ls = Worksheets(1).UsedRange.Columns.Count
+    '选择三个数字区域，把他们打包
+    Set rng1 = Range("K2:T" & hs)
+    Set rng2 = Range("X2:Y" & hs)
+    Set rng3 = Range("AN2:AS" & hs)
+    Set myMultiAreaRange = Union(rng1, rng2, rng3)
+    myMultiAreaRange.Select
+    '变成常规格式
+    Selection.NumberFormatLocal = "G/通用格式"
+    
+    '四舍五入
+    rng1 = Application.Round(rng1, 2)
+    rng2 = Application.Round(rng2, 2)
+    rng3 = Application.Round(rng3, 2)
+    
+    '把后面的费用复制到后后面去
+    Range("AN2:AS" & hs).Select
+    Selection.Cut
+    Range("BF2").Select
+    ActiveSheet.Paste
+    
+    '把后面的格子画出来
+    Range("AN2:BK" & hs).Select
+    Selection.Borders(xlDiagonalDown).LineStyle = xlNone
+    Selection.Borders(xlDiagonalUp).LineStyle = xlNone
+    With Selection.Borders(xlEdgeLeft)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlEdgeTop)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlEdgeBottom)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlEdgeRight)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlInsideVertical)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlInsideHorizontal)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection
+        .VerticalAlignment = xlCenter
+        .WrapText = False
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+    End With
+    With Selection
+        .HorizontalAlignment = xlGeneral
+        .VerticalAlignment = xlCenter
+        .WrapText = False
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+    End With
+    With Selection
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .WrapText = False
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+    End With
+    
+    '规范化短日期
+    Range("AA2:AC" & hs).Select
+    Selection.NumberFormatLocal = "yyyy/m/d"
+    
+'检查初始日期
+stday = Now()
+For i = 2 To hs
+If (Range("AA" & i) >= stday - 10 And Range("AA" & i) <= stday + 10) Then
+Else
+MsgBox ("AA" & i & "初始日期错误")
+End If
+Next i
+'核对后面的还款起始日期
+For i = 2 To hs
+date1 = Range("AA" & i).Value
+date2 = Application.Text(WorksheetFunction.EDate(date1, 1), "yyyy-mm-dd")
+date3 = Range("AB" & i).Value
+If (DateAdd("d", -1, date2) = date3) = True Then
+Else
+MsgBox ("AA" & i & "还款起始日期错误")
+End If
+Next i
+'核对后面的还款截止日
+For i = 2 To hs
+date4 = Range("AB" & i).Value
+aaa = Range("U" & i) - 1
+date5 = Application.Text(WorksheetFunction.EDate(date4, aaa), "yyyy-mm-dd")
+date6 = Range("AC" & i).Value
+If Format(date5, "yyyy-mm-dd") = Format(date6, "yyyy-mm-dd") Then
+Else
+MsgBox (Format(date6, "yyyy-mm-dd"))
+MsgBox ("AC" & i & "还款截止日错误")
+End If
+Next i
+
+
+'产品类型中如果有展期，删除
+For w = 2 To hs
+Set rngx = Range("J" & w).Find("展期")
+If rngx Is Nothing Then
+Else
+mypos = InStr(1, rngx, "展期", 1)
+zuo = Mid(rngx, mypos - 1, 1)
+mypos1 = InStr(1, zuo, "（", 1)
+you = Mid(rngx, mypos + 2, 1)
+mypos2 = InStr(1, you, ")", 1)
+If (mypos1 < 1000 And mypos2 < 1000) = True Then
+x = rngx.Row
+Range("j" & x) = Mid(rngx, 1, mypos - 2) & Mid(rngx, mypos + 3)
+Else
+x = rngx.Row
+MsgBox ("不同寻常的展期" & x)
+End If
+End If
+Next
+
+'产品类型中有质押类/押车类转化为移交类
+For ww = 2 To hs
+Set rngx2 = Range("J" & ww).Find("质押类")
+If rngx2 Is Nothing Then
+Else
+x = rngx2.Row
+Range("j" & x) = Replace(rngx2, "质押类", "移交类")
+End If
+
+Set rngx3 = Range("J" & ww).Find("押车类")
+If rngx3 Is Nothing Then
+Else
+x = rngx3.Row
+Range("j" & x) = Replace(rngx3, "押车类", "移交类")
+End If
+Next
+
+
+'在进件编号/卡号/身份证这三列加'
+For s = 2 To hs
+Range("h" & s) = "'" & Range("h" & s)
+Range("ae" & s) = "'" & Range("ae" & s)
+Range("ag" & s) = "'" & Range("ag" & s)
+Next
+
+'填写后面的本息
+For u = 2 To hs
+xx = Range("u" & u).Value
+
+For v = 0 To xx - 2
+Cells(u, 40 + v) = Range("x" & u)
+Next
+
+For j = xx - 1 To xx - 1
+Cells(u, 40 + j) = Range("y" & u)
+Next
+
+Next
+
+End Sub
