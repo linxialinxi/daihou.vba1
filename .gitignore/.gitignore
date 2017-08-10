@@ -3,7 +3,7 @@ Sub 贷后一号VBA()
 ' 贷后一号VBA 宏
 '
 
-'
+
     Dim rng1 As Range, rng2 As Range, rng3 As Range, myMultiAreaRange As Range
     '查询一共有多少行/列
     hs = Worksheets(1).UsedRange.Rows.Count
@@ -195,5 +195,15 @@ Cells(u, 40 + j) = Range("y" & u)
 Next
 
 Next
+
+'替换空格
+Cells.Replace What:=" ", Replacement:="", LookAt:=xlPart, SearchOrder:= _
+        xlByRows, MatchCase:=False, SearchFormat:=False, ReplaceFormat:=False
+        
+''另存到本文件夹中的且重命名
+Dim time1
+time1 = Application.InputBox("请输入文件日期 格式：8.4", "文件日期", A1, , , , , 2)
+ActiveWorkbook.SaveAs Filename:=ThisWorkbook.Path & "\嘉享德借款明细对接债权2017." & time1 & "(to贷后).xlsx "
+
 
 End Sub
