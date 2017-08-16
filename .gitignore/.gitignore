@@ -1,13 +1,30 @@
-Sub 贷后一号VBA()
-'
-' 贷后一号VBA 宏
-'
+Sub 新版本贷后一号()
 
+’另外添加了产品和期数的校对
+'解决了字体会变成等线的问题，修正后的字体为宋体
+'原版本另存为带宏，这个版本修正了这个问题
 
-    Dim rng1 As Range, rng2 As Range, rng3 As Range, myMultiAreaRange As Range
-    '查询一共有多少行/列
+   '查询一共有多少行/列
     hs = Worksheets(1).UsedRange.Rows.Count
     ls = Worksheets(1).UsedRange.Columns.Count
+    
+    '把字体改成宋体
+    Worksheets(1).UsedRange.Select
+    With Selection.Font
+        .Name = "宋体"
+        .Strikethrough = False
+        .Superscript = False
+        .Subscript = False
+        .OutlineFont = False
+        .Shadow = False
+        .Underline = xlUnderlineStyleNone
+        .TintAndShade = 0
+        .ThemeFont = xlThemeFontNone
+    End With
+    
+    
+    Dim rng1 As Range, rng2 As Range, rng3 As Range, myMultiAreaRange As Range
+    
     '选择三个数字区域，把他们打包
     Set rng1 = Range("K2:T" & hs)
     Set rng2 = Range("X2:Y" & hs)
@@ -23,8 +40,7 @@ Sub 贷后一号VBA()
     rng3 = Application.Round(rng3, 2)
     
     '把后面的费用复制到后后面去
-    Range("AN2:AS" & hs).Select
-    Selection.Cut
+    Range("AN2:AS" & hs).Cut
     Range("BF2").Select
     ActiveSheet.Paste
     
@@ -101,9 +117,26 @@ Sub 贷后一号VBA()
         .MergeCells = False
     End With
     
-    '规范化短日期
-    Range("AA2:AC" & hs).Select
-    Selection.NumberFormatLocal = "yyyy/m/d"
+    
+'产品类先息后本，移交类123期。等额本息12 18 24期
+For www = 2 To hs
+Set rngx2 = Range("J" & www).Find("等额本息")
+If rngx2 Is Nothing Then
+  If (Range("U" & www).Value = 1 Or Range("U" & www).Value = 2 Or Range("U" & www).Value = 3) = True Then
+  Else
+  MsgBox ("第" & www & "行产品类型和期数不符")
+  End If
+Else
+  If (Range("U" & www).Value = 12 Or Range("U" & www).Value = 18 Or Range("U" & www).Value = 24) = True Then
+  Else
+  MsgBox ("第" & www & "行产品类型和期数不符")
+  End If
+End If
+Next
+
+'规范化短日期
+Range("AA2:AC" & hs).Select
+Selection.NumberFormatLocal = "yyyy/m/d"
     
 '检查初始日期
 stday = Now()
@@ -157,6 +190,7 @@ End If
 End If
 Next
 
+
 '产品类型中有质押类/押车类转化为移交类
 For ww = 2 To hs
 Set rngx2 = Range("J" & ww).Find("质押类")
@@ -200,10 +234,10 @@ Next
 Cells.Replace What:=" ", Replacement:="", LookAt:=xlPart, SearchOrder:= _
         xlByRows, MatchCase:=False, SearchFormat:=False, ReplaceFormat:=False
         
-''另存到本文件夹中的且重命名
+'另存到本文件夹中的且重命名
 Dim time1
 time1 = Application.InputBox("请输入文件日期 格式：8.4", "文件日期", A1, , , , , 2)
+Worksheets(1).Copy
 ActiveWorkbook.SaveAs Filename:=ThisWorkbook.Path & "\嘉享德借款明细对接债权2017." & time1 & "(to贷后).xlsx "
-
 
 End Sub
