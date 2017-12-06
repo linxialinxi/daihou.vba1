@@ -26,12 +26,26 @@ Sub 新版本贷后一号()
     rng3 = Application.Round(rng3, 2)
     
     '把后面的费用复制到后后面去
-    Range("AN2:AS" & hs).Cut
-    Range("BL2").Select
+    Range("AN2:AT" & hs).Cut
+    Range("CL2").Select
     ActiveSheet.Paste
     
+    
+    '清空格子
+    Rows("1:" & hs).Select
+    Selection.Borders(xlDiagonalDown).LineStyle = xlNone
+    Selection.Borders(xlDiagonalUp).LineStyle = xlNone
+    Selection.Borders(xlEdgeLeft).LineStyle = xlNone
+    Selection.Borders(xlEdgeTop).LineStyle = xlNone
+    Selection.Borders(xlEdgeBottom).LineStyle = xlNone
+    Selection.Borders(xlEdgeRight).LineStyle = xlNone
+    Selection.Borders(xlInsideVertical).LineStyle = xlNone
+    Selection.Borders(xlInsideHorizontal).LineStyle = xlNone
+    
+    
+    
     '把后面的格子画出来
-    Range("AN2:BQ" & hs).Select
+    Range("A1:CR" & hs).Select
     Selection.Borders(xlDiagonalDown).LineStyle = xlNone
     Selection.Borders(xlDiagonalUp).LineStyle = xlNone
     With Selection.Borders(xlEdgeLeft)
@@ -105,19 +119,25 @@ Sub 新版本贷后一号()
     
     
 '产品类先息后本，移交类123期。等额本息12 18 24期
-For www = 2 To hs
-Set rngx2 = Range("J" & www).Find("等额本息")
-If rngx2 Is Nothing Then
-  If (Range("U" & www).Value = 1 Or Range("U" & www).Value = 2 Or Range("U" & www).Value = 3) = True Then
+For w = 2 To hs
+Set rngx2 = Range("J" & w).Find("等额本息")
+Set rngx5 = Range("J" & w).Find("按揭")
+If Not rngx2 Is Nothing Then
+  If (Range("U" & w).Value = 12 Or Range("U" & w).Value = 18 Or Range("U" & w).Value = 24) = True Then
   Else
-  MsgBox ("第" & www & "行产品类型和期数不符")
+  MsgBox ("第" & w & "行产品类型和期数不符")
   End If
-Else
-  If (Range("U" & www).Value = 12 Or Range("U" & www).Value = 18 Or Range("U" & www).Value = 24) = True Then
-  Else
-  MsgBox ("第" & www & "行产品类型和期数不符")
+  ElseIf Not rngx5 Is Nothing Then
+   If (Range("U" & w).Value = 24) = True Then
+   Else
+   MsgBox ("第" & w & "行产品类型和期数不符")
+   End If
+     Else
+     If (Range("U" & w).Value = 1 Or Range("U" & w).Value = 2 Or Range("U" & w).Value = 3) = True Then
+     Else
+     MsgBox ("第" & w & "行产品类型和期数不符")
+     End If
   End If
-End If
 Next
 
 '产品费率检查，在0到1之间
@@ -134,37 +154,66 @@ Next
 Range("AA2:AC" & hs).Select
 Selection.NumberFormatLocal = "yyyy/m/d"
     
-'检查初始日期
+'检查签约日期  在今天的正负5天
 stday = Now()
 For i = 2 To hs
-If (Range("AA" & i) >= stday - 10 And Range("AA" & i) <= stday + 10) Then
+If (Range("AA" & i) >= stday - 5 And Range("AA" & i) <= stday + 5) Then
 Else
-MsgBox ("AA" & i & "初始日期错误")
+MsgBox (i & "行签约日期错误")
 End If
 Next i
-'核对后面的还款起始日期
+
+
+'核对后面的还款起始日期 如果是一般的，还款起始日=签约日-1天（仅仅看日），如果是14天一期，还款起始日=签约日+14-1  暂时没有实现：如果是30天一期的，还款起始日=签约日+30天-1，
 For i = 2 To hs
+
 date1 = Range("AA" & i).Value
-date2 = Application.Text(WorksheetFunction.EDate(date1, 1), "yyyy-mm-dd")
+Date2 = Application.Text(WorksheetFunction.EDate(date1, 1), "yyyy-mm-dd")
 date3 = Range("AB" & i).Value
-If (DateAdd("d", -1, date2) = date3) = True Then
+
+Set rngx6 = Range("J" & i).Find("按揭")
+
+If Not rngx6 Is Nothing Then
+  If (DateAdd("d", 13, date1) = date3) = True Then
+  Else
+  MsgBox (i & "行还款起始日期错误")
+  End If
 Else
-MsgBox ("AA" & i & "还款起始日期错误")
+  If (DateAdd("d", -1, Date2) = date3) = True Then
+  Else
+  MsgBox (i & "行还款起始日期错误")
+  End If
 End If
-Next i
+
+Next
 
 
 '核对后面的还款截止日
 For i = 2 To hs
+
+'还款起始日
 date4 = Range("AB" & i).Value
 aaa = Range("U" & i) - 1
-date5 = Application.Text(WorksheetFunction.EDate(date4, aaa), "yyyy-mm-dd")
+
+
+'还款截至日
 date6 = Range("AC" & i).Value
-If Format(date5, "yyyy-mm-dd") = Format(date6, "yyyy-mm-dd") Then
+
+Set rngx6 = Range("J" & i).Find("按揭")
+If Not rngx6 Is Nothing Then
+  date5 = date4 + aaa * 14
+  If Format(date5, "yyyy-mm-dd") = Format(date6, "yyyy-mm-dd") Then
+  Else
+  MsgBox (i & "行还款截止日错误")
+  End If
 Else
-MsgBox (Format(date6, "yyyy-mm-dd"))
-MsgBox ("AC" & i & "还款截止日错误")
+  date5 = Application.Text(WorksheetFunction.EDate(date4, aaa), "yyyy-mm-dd")
+  If Format(date5, "yyyy-mm-dd") = Format(date6, "yyyy-mm-dd") Then
+  Else
+  MsgBox (i & "行还款截止日错误")
+  End If
 End If
+
 Next i
 
 
@@ -190,15 +239,15 @@ Next
 
 
 '产品类型中有质押类/押车类转化为移交类
-For ww = 2 To hs
-Set rngx2 = Range("J" & ww).Find("质押类")
+For w = 2 To hs
+Set rngx2 = Range("J" & w).Find("质押类")
 If rngx2 Is Nothing Then
 Else
 x = rngx2.Row
 Range("j" & x) = Replace(rngx2, "质押类", "移交类")
 End If
 
-Set rngx3 = Range("J" & ww).Find("押车类")
+Set rngx3 = Range("J" & w).Find("押车类")
 If rngx3 Is Nothing Then
 Else
 x = rngx3.Row
@@ -206,9 +255,30 @@ Range("j" & x) = Replace(rngx3, "押车类", "移交类")
 End If
 Next
 
-'产品类型中有质押类/押车类转化为移交类
-For www = 2 To hs
-Set rngx4 = Range("J" & www).Find("-")
+
+'产品类型中有"-追加"则变为“（追加）”
+For w = 2 To hs
+Set rngx2 = Range("J" & w).Find("-追加")
+If rngx2 Is Nothing Then
+Else
+x = rngx2.Row
+Range("j" & x) = Replace(rngx2, "-追加", "(追加)")
+End If
+Next
+
+'产品类型中有"-结清再贷"则变为“（结清再贷）”
+For w = 2 To hs
+Set rngx2 = Range("J" & w).Find("-结清再贷")
+If rngx2 Is Nothing Then
+Else
+x = rngx2.Row
+Range("j" & x) = Replace(rngx2, "-结清再贷", "(结清再贷)")
+End If
+Next
+
+'产品类型中有“-”则提示
+For w = 2 To hs
+Set rngx4 = Range("J" & w).Find("-")
 If rngx4 Is Nothing Then
 Else
 x = rngx4.Row
@@ -227,15 +297,28 @@ Next
 For u = 2 To hs
 xx = Range("u" & u).Value
 
-For v = 0 To xx - 2
-Cells(u, 40 + v) = Range("x" & u)
+Set rngx2 = Range("J" & u).Find("按揭")
+If rngx2 Is Nothing Then
+
+  For v = 0 To (xx * 2) - 1 Step 2
+  Cells(u, 40 + v) = Range("x" & u)
+  Next
+
+  j = xx * 2
+  Cells(u, 40 + j) = Range("y" & u)
+Else
+  For v = 0 To xx - 2
+  Cells(u, 40 + v) = Range("x" & u)
+  Next
+
+  For j = xx - 1 To xx - 1
+  Cells(u, 40 + j) = Range("y" & u)
+  Next
+  
+End If
 Next
 
-For j = xx - 1 To xx - 1
-Cells(u, 40 + j) = Range("y" & u)
-Next
 
-Next
 
 '替换空格
 Cells.Replace What:=" ", Replacement:="", LookAt:=xlPart, SearchOrder:= _
@@ -262,7 +345,7 @@ Date7 = Range("AB" & i).Value
 Date8 = Range("AN" & 1).Value
 If Month(Date7) = Month(Date8) Then
 Else
-MsgBox ("AB" & i & "还款日期表头不一致，需要分开")
+MsgBox (i & "行还款日期表头不一致，需要分开")
 End If
 Next i
 
@@ -274,3 +357,5 @@ Worksheets(1).Copy
 ActiveWorkbook.SaveAs Filename:=ThisWorkbook.Path & "\嘉享德借款明细对接债权2017." & time1 & "(to贷后).xlsx "
 
 End Sub
+
+
