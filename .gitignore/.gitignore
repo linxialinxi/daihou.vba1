@@ -27,7 +27,7 @@ Sub 新版本贷后一号()
     
     '把后面的费用复制到后后面去
     Range("AN2:AT" & hs).Cut
-    Range("CL2").Select
+    Range("CJ2").Select
     ActiveSheet.Paste
     
     
@@ -45,7 +45,7 @@ Sub 新版本贷后一号()
     
     
     '把后面的格子画出来
-    Range("A1:CR" & hs).Select
+    Range("A1:CP" & hs).Select
     Selection.Borders(xlDiagonalDown).LineStyle = xlNone
     Selection.Borders(xlDiagonalUp).LineStyle = xlNone
     With Selection.Borders(xlEdgeLeft)
@@ -167,21 +167,28 @@ Next i
 '核对后面的还款起始日期 如果是一般的，还款起始日=签约日-1天（仅仅看日），如果是14天一期，还款起始日=签约日+14-1  暂时没有实现：如果是30天一期的，还款起始日=签约日+30天-1，
 For i = 2 To hs
 
-date1 = Range("AA" & i).Value
-Date2 = Application.Text(WorksheetFunction.EDate(date1, 1), "yyyy-mm-dd")
-date3 = Range("AB" & i).Value
+DATE1 = Range("AA" & i).Value  '签约日
+DATE2 = Application.Text(WorksheetFunction.EDate(DATE1, 1), "yyyy-mm-dd")  '规范化签约日
+date3 = Range("AB" & i).Value  '还款起始日
 
 Set rngx6 = Range("J" & i).Find("按揭")
 
 If Not rngx6 Is Nothing Then
-  If (DateAdd("d", 13, date1) = date3) = True Then
+  If (DateAdd("d", 13, DATE1) = date3) = True Then
   Else
   MsgBox (i & "行还款起始日期错误")
   End If
 Else
-  If (DateAdd("d", -1, Date2) = date3) = True Then
+  If Range("Z" & i) <> "" Then
+    If (DateAdd("d", -1, DATE2) = date3) = True Then
+    Else
+    MsgBox (i & "行还款起始日期错误")
+    End If
   Else
-  MsgBox (i & "行还款起始日期错误")
+    If (DateAdd("d", 29, DATE1) = date3) = True Then
+    Else
+    MsgBox (i & "行还款起始日期错误")
+    End If
   End If
 End If
 
@@ -192,8 +199,10 @@ Next
 For i = 2 To hs
 
 '还款起始日
-date4 = Range("AB" & i).Value
+DATE4 = Range("AB" & i).Value
+DATE1 = Range("AA" & i).Value
 aaa = Range("U" & i) - 1
+bbb = Range("U" & i)
 
 
 '还款截至日
@@ -201,16 +210,24 @@ date6 = Range("AC" & i).Value
 
 Set rngx6 = Range("J" & i).Find("按揭")
 If Not rngx6 Is Nothing Then
-  date5 = date4 + aaa * 14
-  If Format(date5, "yyyy-mm-dd") = Format(date6, "yyyy-mm-dd") Then
+  DATE5 = DATE4 + aaa * 14
+  If Format(DATE5, "yyyy-mm-dd") = Format(date6, "yyyy-mm-dd") Then
   Else
   MsgBox (i & "行还款截止日错误")
   End If
 Else
-  date5 = Application.Text(WorksheetFunction.EDate(date4, aaa), "yyyy-mm-dd")
-  If Format(date5, "yyyy-mm-dd") = Format(date6, "yyyy-mm-dd") Then
+  If Range("Z" & i) <> "" Then
+    DATE5 = Application.Text(WorksheetFunction.EDate(DATE4, aaa), "yyyy-mm-dd")
+    If Format(DATE5, "yyyy-mm-dd") = Format(date6, "yyyy-mm-dd") Then
+    Else
+    MsgBox (i & "行还款截止日错误")
+    End If
   Else
-  MsgBox (i & "行还款截止日错误")
+    DATE5 = DATE1 + bbb * 30 - 1
+    If Format(DATE5, "yyyy-mm-dd") = Format(date6, "yyyy-mm-dd") Then
+    Else
+    MsgBox (i & "行还款截止日错误")
+    End If
   End If
 End If
 
@@ -300,11 +317,11 @@ xx = Range("u" & u).Value
 Set rngx2 = Range("J" & u).Find("按揭")
 If rngx2 Is Nothing Then
 
-  For v = 0 To (xx * 2) - 1 Step 2
+  For v = 0 To (xx * 2) - 3 Step 2
   Cells(u, 40 + v) = Range("x" & u)
   Next
 
-  j = xx * 2
+  j = xx * 2 - 2
   Cells(u, 40 + j) = Range("y" & u)
 Else
   For v = 0 To xx - 2
@@ -354,7 +371,7 @@ Next i
 Dim time1
 time1 = Application.InputBox("请输入文件日期 格式：8.4", "文件日期", A1, , , , , 2)
 Worksheets(1).Copy
-ActiveWorkbook.SaveAs Filename:=ThisWorkbook.Path & "\嘉享德借款明细对接债权2017." & time1 & "(to贷后).xlsx "
+ActiveWorkbook.SaveAs Filename:=ThisWorkbook.Path & "\嘉享德借款明细对接债权2018." & time1 & "(to贷后).xlsx "
 
 End Sub
 
