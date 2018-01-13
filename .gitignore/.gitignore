@@ -368,11 +368,9 @@ Next i
 
 
 '另存到本文件夹中的且重命名
-Dim time1
-time1 = Application.InputBox("请输入文件日期 格式：8.4", "文件日期", A1, , , , , 2)
+Dim time2
+time2 = Date - 1
 Worksheets(1).Copy
-ActiveWorkbook.SaveAs Filename:=ThisWorkbook.Path & "\嘉享德借款明细对接债权2018." & time1 & "(to贷后).xlsx "
+ActiveWorkbook.SaveAs Filename:=ThisWorkbook.Path & "\嘉享德借款明细对接债权" & Format(Date - 1, "yyyy.M.D") & ".xlsx"
 
 End Sub
-
-
