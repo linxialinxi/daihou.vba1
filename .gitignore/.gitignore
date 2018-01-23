@@ -371,6 +371,52 @@ Next i
 Dim time2
 time2 = Date - 1
 Worksheets(1).Copy
-ActiveWorkbook.SaveAs Filename:=ThisWorkbook.Path & "\嘉享德借款明细对接债权" & Format(Date - 1, "yyyy.M.D") & ".xlsx"
+ActiveWorkbook.SaveAs Filename:=ThisWorkbook.path & "\嘉享德借款明细对接债权" & Format(Date - 1, "yyyy.M.D") & ".xlsx"
 
+
+'是否发送邮件
+   
+    n = MsgBox("是否发送邮件？", vbYesNo)
+    If n = vbNo Then Exit Sub
+
+'发送邮件
+    Dim path As String
+    path = ThisWorkbook.path
+    Application.ScreenUpdating = False
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim Body As String
+    Dim fname As String ', fname1 As String, fname2 As String, fname3 As String
+
+    Set OutApp = CreateObject("Outlook.Application")
+    '运行代码弹出OUTLOOK配置界面，配置qq邮箱（在QQ邮箱的设置下开启pop3和imap,生成的授权码当密码填在outlook里，在其他设置里端口根据qq邮箱帮助里填写）
+    Set OutMail = OutApp.CreateItem(0)
+
+    'Body = "HAHA"     '这里设置你的邮件内容
+    
+    '这里设置要添加附件的文件路径
+    fname = path & "\嘉享德借款明细对接债权" & Format(Date - 1, "yyyy.M.D") & ".xlsx"
+    'fname1 = path & "\B.xlsx"
+    'fname2 = path & "\C.xlsx"
+    
+    On Error Resume Next
+    With OutMail
+        .To = "daihou@huiwang365.com;huanglei@huiwang365.com;ouyangqinglin@huiwang365.com;huakou@huiwang365.com;zhanglulu@huiwang365.com;wangxiaofang@huiwang365.com"                  '收件人
+        '.CC = "gaodan@huiwang365.com;15850698010@163.com"               '抄送人-所有接收者都知道哪些人收到此邮件
+        '.BCC = "test5@qq.com; test5@qq.com"             '密送人-收件人不知道同时发送给了哪些人
+        .Subject = "嘉享德借款明细对接债权" & Format(Date - 1, "yyyy.M.D")                           '这是邮件主题
+        '.Body = Body                                    '这是邮件内容
+        .Attachments.Add fname                          '添加附件
+        '.Attachments.Add fname1
+        '.Attachments.Add fname2
+        
+        .Display
+        .Send
+    End With
+    On Error GoTo 0
+    
+    Set OutMail = Nothing
+    Set OutApp = Nothing
+
+Application.ScreenUpdating = True
 End Sub
