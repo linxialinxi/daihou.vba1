@@ -8,19 +8,17 @@ Sub 新版本贷后一号()
     hs = Worksheets(1).UsedRange.Rows.Count
     ls = Worksheets(1).UsedRange.Columns.Count
     
-    
+    '定义三个数字区域，选择，把他们打包
     Dim rng1 As Range, rng2 As Range, rng3 As Range, myMultiAreaRange As Range
     
-    '选择三个数字区域，把他们打包
     Set rng1 = Range("K2:T" & hs)
     Set rng2 = Range("X2:Y" & hs)
     Set rng3 = Range("AN2:AS" & hs)
     Set myMultiAreaRange = Union(rng1, rng2, rng3)
     myMultiAreaRange.Select
-    '变成常规格式
-    Selection.NumberFormatLocal = "G/通用格式"
     
-    '四舍五入
+    '变成常规格式，四舍五入
+    Selection.NumberFormatLocal = "G/通用格式"
     rng1 = Application.Round(rng1, 2)
     rng2 = Application.Round(rng2, 2)
     rng3 = Application.Round(rng3, 2)
@@ -31,7 +29,7 @@ Sub 新版本贷后一号()
     ActiveSheet.Paste
     
     
-    '清空格子
+    '清空格子(因为整行都有格子很难看)
     Rows("1:" & hs).Select
     Selection.Borders(xlDiagonalDown).LineStyle = xlNone
     Selection.Borders(xlDiagonalUp).LineStyle = xlNone
@@ -44,7 +42,7 @@ Sub 新版本贷后一号()
     
     
     
-    '把后面的格子画出来
+    '把格子画出来（只画有数据的区域）
     Range("A1:CP" & hs).Select
     Selection.Borders(xlDiagonalDown).LineStyle = xlNone
     Selection.Borders(xlDiagonalUp).LineStyle = xlNone
@@ -140,7 +138,7 @@ If Not rngx2 Is Nothing Then
   End If
 Next
 
-'产品费率检查，在0到1之间
+'产品费率检查，在0到0.1之间
 For i = 2 To hs
 date9 = Range("V" & i).Value
 date10 = Range("W" & i).Value
@@ -149,6 +147,41 @@ Else
 MsgBox ("第" & i & "行费率有问题")
 End If
 Next
+
+
+
+'检查月还
+For i = 2 To hs
+Set rngx2 = Range("J" & i).Find("等额本息")
+
+date11 = Range("K" & i).Value
+date12 = Range("L" & i).Value
+date13 = Range("M" & i).Value
+date14 = Range("R" & i).Value
+date15 = Range("S" & i).Value
+date16 = Range("U" & i).Value
+date17 = Range("X" & i).Value
+
+If Not rngx2 Is Nothing Then
+    If (date11 / date16 + date12 + date13 + date15 - date17 > -0.01 And date11 / date16 + date12 + date13 + date15 - date17 < 0.01) = True Then
+    Else
+    MsgBox ("第" & i & "行月还有问题")
+    End If
+Else
+  If date16 = 1 Then
+    If (date17 = date11 + date13 + date12) = True Then
+    Else
+    MsgBox ("第" & i & "行月还有问题")
+    End If
+  Else
+    If (date17 = date12 + date13 + date14) = True Then
+    Else
+    MsgBox ("第" & i & "行月还有问题")
+    End If
+  End If
+End If
+Next
+
 
 '规范化短日期
 Range("AA2:AC" & hs).Select
@@ -164,7 +197,7 @@ End If
 Next i
 
 
-'核对后面的还款起始日期 如果是一般的，还款起始日=签约日-1天（仅仅看日），如果是14天一期，还款起始日=签约日+14-1  暂时没有实现：如果是30天一期的，还款起始日=签约日+30天-1，
+'核对后面的还款起始日期 如果是一般的，还款起始日=签约日-1天（仅仅看日），如果是14天一期，还款起始日=签约日+14-1  如果是30天一期的，还款起始日=签约日+30天-1，
 For i = 2 To hs
 
 DATE1 = Range("AA" & i).Value  '签约日
@@ -366,6 +399,42 @@ MsgBox (i & "行还款日期表头不一致，需要分开")
 End If
 Next i
 
+'删除实际费率那一列
+Worksheets(1).Range("w:w").Delete
+
+'合同编号为0025开头/状态为非正常/移交类
+For u = 2 To hs
+
+Set rngx2 = Range("J" & u).Find("移交")
+If rngx2 Is Nothing Then
+
+Else
+Range("a" & u).Value = "嘉享德"
+ 
+End If
+Next
+
+For u = 2 To hs
+Set rngx2 = Range("h" & u).Find("0025")
+
+If rngx2 Is Nothing Then
+
+Else
+Range("a" & u).Value = "嘉享德"
+ 
+End If
+Next
+
+For u = 2 To hs
+Set rngx2 = Range("CO" & u).Find("公车/过户/移交")
+
+If rngx2 Is Nothing Then
+
+Else
+Range("a" & u).Value = "嘉享德"
+ 
+End If
+Next
 
 '另存到本文件夹中的且重命名
 Dim time2
@@ -388,16 +457,14 @@ ActiveWorkbook.SaveAs Filename:=ThisWorkbook.path & "\嘉享德借款明细对�
     Dim Body As String
     Dim fname As String ', fname1 As String, fname2 As String, fname3 As String
 
-    Set OutApp = CreateObject("Outlook.Application")
+    'Set OutApp = CreateObject("Outlook.Application")
     '运行代码弹出OUTLOOK配置界面，配置qq邮箱（在QQ邮箱的设置下开启pop3和imap,生成的授权码当密码填在outlook里，在其他设置里端口根据qq邮箱帮助里填写）
-    Set OutMail = OutApp.CreateItem(0)
+    'Set OutMail = OutApp.CreateItem(0)
 
     'Body = "HAHA"     '这里设置你的邮件内容
     
     '这里设置要添加附件的文件路径
     fname = path & "\嘉享德借款明细对接债权" & Format(Date - 1, "yyyy.M.D") & ".xlsx"
-    'fname1 = path & "\B.xlsx"
-    'fname2 = path & "\C.xlsx"
     
     On Error Resume Next
     With OutMail
@@ -407,8 +474,6 @@ ActiveWorkbook.SaveAs Filename:=ThisWorkbook.path & "\嘉享德借款明细对�
         .Subject = "嘉享德借款明细对接债权" & Format(Date - 1, "yyyy.M.D")                           '这是邮件主题
         '.Body = Body                                    '这是邮件内容
         .Attachments.Add fname                          '添加附件
-        '.Attachments.Add fname1
-        '.Attachments.Add fname2
         
         .Display
         .Send
@@ -419,4 +484,6 @@ ActiveWorkbook.SaveAs Filename:=ThisWorkbook.path & "\嘉享德借款明细对�
     Set OutApp = Nothing
 
 Application.ScreenUpdating = True
+
+
 End Sub
